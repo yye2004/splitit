@@ -1,26 +1,960 @@
-@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Schoolbell&display=swap");
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #f5f2eb;
+  --paper-deep: #f0ede4;
+  --ink: #1a1a1a;
+  --warning: #cc5500;
+  --white: #ffffff;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  min-height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Schoolbell", cursive;
+  letter-spacing: 0;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+input {
+  background: transparent;
+  border: 0;
+  color: var(--ink);
+  min-width: 0;
+}
+
+input:focus {
+  outline: 0;
+}
+
+.app-page {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.app-stage {
+  width: min(94vw, 350px);
+  display: grid;
+  place-items: center;
+}
+
+.symbol-defs {
+  display: none;
+}
+
+.shape {
+  display: block;
+  height: 100%;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
+}
+
+.clipboard-shell {
+  aspect-ratio: 300 / 420;
+  position: relative;
+  width: min(94vw, 340px);
+}
+
+.clipboard-shape {
+  z-index: 0;
+}
+
+.clipboard-content {
+  bottom: 25px;
+  display: flex;
+  flex-direction: column;
+  left: 34px;
+  position: absolute;
+  right: 34px;
+  top: 52px;
+  z-index: 1;
+}
+
+.screen {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  position: relative;
+}
+
+.screen h1,
+.screen h2,
+.screen h3,
+.screen p {
+  margin: 0;
+}
+
+.screen h1 {
+  font-size: clamp(56px, 16vw, 72px);
+  font-weight: 400;
+  line-height: 0.92;
+}
+
+.screen h2 {
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 1;
+  margin-bottom: 14px;
+}
+
+.screen h3 {
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.tiny-label {
+  display: block;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.screen-home {
+  justify-content: space-between;
+  padding-bottom: 10px;
+}
+
+.home-title {
+  padding-top: 28px;
+}
+
+.home-actions {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+
+.recent-note {
+  display: grid;
+  gap: 2px;
+  line-height: 1.05;
+}
+
+.recent-note span,
+.recent-note small {
+  font-size: 16px;
+}
+
+.recent-note strong {
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.back-link,
+.plain-link {
+  align-self: flex-start;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.plain-link {
+  font-size: 20px;
+  margin: 9px 0 12px;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.field-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.field-row {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.sketch-field {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+}
+
+.sketch-field span:first-child {
+  font-size: 17px;
+  line-height: 1;
+}
+
+.field-box {
+  height: 38px;
+  position: relative;
+  width: 100%;
+}
+
+.sketch-field.sm .field-box {
+  height: 34px;
+}
+
+.field-box strong {
+  align-items: center;
+  bottom: 0;
+  display: flex;
+  font-size: 19px;
+  font-weight: 400;
+  left: 12px;
+  overflow: hidden;
+  position: absolute;
+  right: 10px;
+  top: 0;
+  white-space: nowrap;
+}
+
+.field-input {
+  bottom: 0;
+  font-size: 19px;
+  left: 10px;
+  line-height: 1;
+  position: absolute;
+  right: 8px;
+  top: 0;
+  width: calc(100% - 18px);
+}
+
+.people-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding-top: 2px;
+}
+
+.chip {
+  align-items: center;
+  display: inline-flex;
+  height: 24px;
+  justify-content: center;
+  min-width: 56px;
+  position: relative;
+}
+
+.chip span {
+  font-size: 15px;
+  line-height: 1;
+  padding-top: 1px;
+  position: relative;
+}
+
+.chip.checked span {
+  padding-left: 12px;
+}
+
+.person-chip,
+.chip-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  display: inline-flex;
+  height: 24px;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+  width: 66px;
+}
+
+.chip-button {
+  cursor: pointer;
+}
+
+.chip-input {
+  font-size: 14px;
+  height: 20px;
+  line-height: 1;
+  padding: 0 6px;
+  position: relative;
+  text-align: center;
+  width: 58px;
+}
+
+.chip-button span {
+  font-size: 18px;
+  line-height: 1;
+  position: relative;
+}
+
+.checkbox-row {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--ink);
+  cursor: pointer;
+  display: flex;
+  font-size: 19px;
+  gap: 8px;
+  line-height: 1;
+  padding: 0;
+  text-align: left;
+}
+
+.checkbox-row.compact {
+  font-size: 17px;
+}
+
+.checkbox-row .shape {
+  flex: 0 0 17px;
+  height: 17px;
+  position: relative;
+  width: 17px;
+}
+
+.title-row {
+  align-items: start;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.running-total {
+  align-items: center;
+  display: flex;
+  height: 30px;
+  justify-content: center;
+  margin-top: 2px;
+  position: relative;
+  width: 112px;
+}
+
+.running-total span {
+  font-size: 17px;
+  line-height: 1;
+  position: relative;
+}
+
+.item-list {
+  display: grid;
+  gap: 8px;
+}
+
+.setup-scroll,
+.item-list-scroll {
+  max-height: 235px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.faded-context {
+  opacity: 0.42;
+}
+
+.item-row {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: grid;
+  height: 58px;
+  padding: 9px 13px 8px;
+  position: relative;
+  text-align: left;
+  width: 100%;
+}
+
+.item-editor {
+  cursor: default;
+}
+
+.item-main,
+.item-chips {
+  position: relative;
+}
+
+.item-main {
+  align-items: baseline;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.item-main strong {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-main span {
+  flex: 0 0 auto;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.item-chips {
+  display: flex;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.item-input-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 82px;
+}
+
+.item-name-input,
+.item-price-input input {
+  font-size: 18px;
+  height: 20px;
+  line-height: 1;
+}
+
+.item-name-input {
+  width: 100%;
+}
+
+.item-price-input {
+  align-items: baseline;
+  display: flex;
+  gap: 3px;
+  justify-content: flex-end;
+}
+
+.item-price-input span {
+  font-size: 15px;
+}
+
+.item-price-input input {
+  text-align: right;
+  width: 48px;
+}
+
+.item-chips .chip {
+  height: 20px;
+  min-width: 48px;
+}
+
+.item-chips .chip span {
+  font-size: 13px;
+}
+
+.mini-add {
+  margin-top: 9px;
+}
+
+.mini-add-button,
+.assign-open {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+}
+
+.mini-add-button {
+  height: 36px;
+  margin-top: 8px;
+  width: 150px;
+}
+
+.mini-add-button span,
+.assign-open span {
+  font-size: 17px;
+  line-height: 1;
+  position: relative;
+}
+
+.assign-open {
+  height: 20px;
+  width: 56px;
+}
+
+.assign-open span {
+  font-size: 13px;
+}
+
+.charge-lines,
+.detail-stack,
+.result-list,
+.quick-people {
+  display: grid;
+  gap: 10px;
+}
+
+.service-charge-control {
+  display: grid;
+  gap: 5px;
+}
+
+.service-charge-top {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  line-height: 1;
+}
+
+.service-charge-top span,
+.service-charge-top strong {
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.service-charge-top strong {
+  font-size: 22px;
+}
+
+.percent-stepper {
+  align-items: center;
+  display: flex;
+  gap: 5px;
+}
+
+.step-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  flex: 0 0 34px;
+  height: 25px;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+  transform-origin: center;
+  transition: transform 150ms linear;
+}
+
+.step-button span,
+.percent-mark {
+  font-size: 22px;
+  line-height: 1;
+  position: relative;
+}
+
+.percent-input-wrap {
+  display: block;
+  flex: 0 0 76px;
+  height: 32px;
+  position: relative;
+}
+
+.percent-input {
+  background: transparent;
+  border: 0;
+  color: var(--ink);
+  height: 100%;
+  line-height: 1;
+  padding: 0 10px;
+  position: relative;
+  text-align: center;
+  width: 100%;
+}
+
+.percent-input:focus {
+  outline: 0;
+}
+
+.amount-line,
+.result-person {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  line-height: 1;
+}
+
+.editable-amount-line {
+  align-items: center;
+}
+
+.amount-input-wrap {
+  align-items: center;
+  display: flex;
+  gap: 3px;
+  height: 32px;
+  justify-content: center;
+  position: relative;
+  width: 100px;
+}
+
+.amount-input-wrap > span {
+  font-size: 15px;
+  line-height: 1;
+  position: relative;
+}
+
+.amount-input-wrap input {
+  font-size: 20px;
+  line-height: 1;
+  position: relative;
+  text-align: right;
+  width: 48px;
+}
+
+.amount-line span,
+.result-person strong,
+.result-person span,
+.warning-line span {
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.amount-line strong,
+.result-person > span:last-child {
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.warning-line {
+  color: var(--warning);
+  display: grid;
+  gap: 1px;
+  justify-items: end;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.warning-line .shape {
+  height: 14px;
+  position: relative;
+  width: 120px;
+}
+
+.matched-line {
+  align-items: center;
+  display: flex;
+  font-size: 20px;
+  gap: 8px;
+  justify-content: flex-end;
+  line-height: 1;
+}
+
+.matched-line .shape {
+  flex: 0 0 17px;
+  height: 17px;
+  position: relative;
+  width: 17px;
+}
+
+.result-person {
+  justify-content: start;
+}
+
+.result-person strong {
+  flex: 1;
+}
+
+.status-button,
+.result-open {
+  background: transparent;
+  border: 0;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+}
+
+.status-button {
+  flex: 0 0 18px;
+  height: 18px;
+  position: relative;
+}
+
+.result-open {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  gap: 10px;
+  justify-content: space-between;
+  line-height: 1;
+  text-align: left;
+}
+
+.status-mark {
+  flex: 0 0 18px;
+  height: 18px;
+  position: relative;
+}
+
+.status-mark .shape {
+  margin: 2px;
+  position: absolute;
+}
+
+.paid-note {
+  align-items: center;
+  display: flex;
+  font-size: 22px;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.paid-note .shape {
+  flex: 0 0 18px;
+  height: 18px;
+  position: relative;
+  width: 18px;
+}
+
+.quick-screen h2 {
+  margin-bottom: 12px;
+}
+
+.quick-amount {
+  display: grid;
+  gap: 1px;
+  margin-bottom: 8px;
+}
+
+.quick-amount span,
+.per-person span {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.quick-amount strong {
+  font-size: 44px;
+  font-weight: 400;
+  line-height: 0.95;
+}
+
+.quick-amount .shape {
+  height: 18px;
+  position: relative;
+  width: min(180px, 100%);
+}
+
+.quick-total-input {
+  align-items: baseline;
+  display: flex;
+  gap: 6px;
+  width: 185px;
+}
+
+.quick-total-input span {
+  font-size: 26px;
+}
+
+.quick-total-input input {
+  font-size: 44px;
+  line-height: 0.95;
+  width: 145px;
+}
+
+.quick-people {
+  gap: 4px;
+}
+
+.per-person {
+  display: grid;
+  gap: 2px;
+  margin-top: 10px;
+}
+
+.quick-screen .divider {
+  height: 8px;
+  margin: 0;
+}
+
+.quick-screen .per-person {
+  margin-top: 2px;
+  padding-bottom: 50px;
+}
+
+.per-person strong {
+  font-size: 36px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.divider {
+  height: 12px;
+  margin: 4px 0;
+  position: relative;
+  width: 100%;
+}
+
+.bottom-action {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  bottom: 0;
+  color: var(--white);
+  cursor: pointer;
+  display: flex;
+  height: 48px;
+  justify-content: center;
+  left: 0;
+  padding: 0;
+  position: absolute;
+  right: 0;
+  transform-origin: center;
+  transition: transform 150ms linear;
+}
+
+.bottom-action span,
+.sketch-button span {
+  font-size: 23px;
+  line-height: 1;
+  position: relative;
+}
+
+.sketch-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  height: 44px;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+  transform-origin: center;
+  transition: transform 150ms linear;
+  width: min(220px, 100%);
+}
+
+.sketch-button.primary {
+  color: var(--white);
+}
+
+.sketch-button.outline {
+  color: var(--ink);
+}
+
+.sketch-button:active,
+.bottom-action:active,
+.assign-person:active,
+.assign-open:active,
+.chip-button:active,
+.mini-add-button:active,
+.result-open:active,
+.status-button:active,
+.step-button:active,
+.back-link:active,
+.plain-link:active {
+  transform: scale(0.97);
+}
+
+.sketch-button:focus-visible,
+.bottom-action:focus-visible,
+.assign-person:focus-visible,
+.assign-open:focus-visible,
+.chip-button:focus-visible,
+.field-input:focus-visible,
+.mini-add-button:focus-visible,
+.result-open:focus-visible,
+.status-button:focus-visible,
+.step-button:focus-visible,
+.percent-input:focus-visible,
+.chip-input:focus-visible,
+.back-link:focus-visible,
+.plain-link:focus-visible {
+  outline: 2px dotted var(--ink);
+  outline-offset: 3px;
+}
+
+.bottom-sheet {
+  bottom: -2px;
+  height: 252px;
+  left: -18px;
+  position: absolute;
+  right: -18px;
+}
+
+.sheet-shape {
+  z-index: 1;
+}
+
+.sheet-content {
+  bottom: 22px;
+  display: grid;
+  gap: 12px;
+  left: 33px;
+  position: absolute;
+  right: 33px;
+  top: 42px;
+  z-index: 2;
+}
+
+.sheet-content strong {
+  display: block;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.assign-options {
+  display: flex;
+  gap: 7px;
+}
+
+.assign-person {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  height: 28px;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+  width: 62px;
+}
+
+.assign-person span {
+  font-size: 15px;
+  line-height: 1;
+  padding-left: 10px;
+  position: relative;
+}
+
+.assign-person:nth-child(3) span {
+  padding-left: 0;
+}
+
+@media (max-width: 360px) {
+  .app-page {
+    padding: 10px;
+  }
+
+  .clipboard-content {
+    left: 30px;
+    right: 30px;
+  }
+
+  .screen h2 {
+    font-size: 31px;
+  }
+
+  .amount-line span,
+  .result-person strong,
+  .result-person span,
+  .warning-line span {
+    font-size: 18px;
+  }
 }
