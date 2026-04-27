@@ -663,7 +663,7 @@ function HomeScreen({
     <div className="screen screen-home">
       <div className="home-title">
         <span className="tiny-label">receipt math, but kinder</span>
-        <h1>splitlah</h1>
+        <h1>split it!</h1>
       </div>
       <Divider />
       <div className="home-actions">
