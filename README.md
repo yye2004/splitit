@@ -23,6 +23,6 @@ Split It is a web-based bill splitting app built with Next.js. It is designed fo
 ## Demo
 
 
-[npm install](https://splitit-cba4.vercel.app/) 
+[View deployed app](https://splitit-cba4.vercel.app/) 
 
 
