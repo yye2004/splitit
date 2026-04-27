@@ -20,22 +20,9 @@ Split It is a web-based bill splitting app built with Next.js. It is designed fo
 - Tailwind CSS
 - Local browser storage
 
-## Getting Started
-
-Install dependencies:
+## Demo
 
 ```bash
-npm install
+[npm install](https://splitit-cba4.vercel.app/) 
 ```
 
-Run the development server:
-
-```bash
-npm run dev
-```
-
-Open the app at:
-
-```bash
-http://localhost:3000
-```
