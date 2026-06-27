@@ -731,7 +731,7 @@ function SetupScreen({
           {people.map((person, index) => (
             <PersonNameChip
               key={`person-${index}`}
-              label={`person ${index + 1}`}
+              label={`p ${index + 1}`}
               onChange={(value) => updatePerson(index, value)}
               value={person}
             />
