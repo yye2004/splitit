@@ -180,7 +180,7 @@ export default function Home() {
 
   const addPerson = useCallback(() => {
     markSplitDirty();
-    setPeople((current) => [...current, `person ${current.length + 1}`]);
+    setPeople((current) => [...current, `p${current.length + 1}`]);
   }, [markSplitDirty]);
 
   const addItem = useCallback(() => {
@@ -730,7 +730,7 @@ function SetupScreen({
         <div className="people-list" aria-label="people on this bill">
           {people.map((person, index) => (
             <PersonNameChip
-              key={`person-${index}`}
+              key={`p-${index}`}
               label={`p ${index + 1}`}
               onChange={(value) => updatePerson(index, value)}
               value={person}
@@ -1101,9 +1101,10 @@ function QuickSplitScreen({
           <span>rm</span>
           <input
             aria-label="quick split total"
-            inputMode="decimal"
+            inputMode="numeric"
             onBlur={() => setTotal(formatMoneyInput(moneyToCents(total)))}
-            onChange={(event) => setTotal(sanitizeMoneyInput(event.target.value))}
+            onChange={(event) => setTotal(moneyDigitsToInput(event.target.value))}
+            onFocus={(event) => event.target.select()}
             type="text"
             value={total}
           />
@@ -1340,11 +1341,10 @@ function EditableItemRow({
           <span>rm</span>
           <input
             aria-label={`${label} price`}
-            inputMode="decimal"
+            inputMode="numeric"
             onBlur={() => normalizeItemPrice(item.id)}
-            onChange={(event) =>
-              updateItemPrice(item.id, sanitizeMoneyInput(event.target.value))
-            }
+            onChange={(event) => updateItemPrice(item.id, moneyDigitsToInput(event.target.value))}
+            onFocus={(event) => event.target.select()}
             type="text"
             value={item.price}
           />
@@ -1406,9 +1406,10 @@ function MoneyAmountLine({
         <span>rm</span>
         <input
           aria-label={label}
-          inputMode="decimal"
+          inputMode="numeric"
           onBlur={() => onChange(formatMoneyInput(moneyToCents(value)))}
-          onChange={(event) => onChange(sanitizeMoneyInput(event.target.value))}
+          onChange={(event) => onChange(moneyDigitsToInput(event.target.value))}
+          onFocus={(event) => event.target.select()}
           type="text"
           value={value}
         />
@@ -1496,16 +1497,11 @@ function moneyToCents(value: string): number {
   return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed * 100)) : 0;
 }
 
-function sanitizeMoneyInput(value: string): string {
-  const cleaned = value.replace(/[^\d.]/g, "");
-  const [wholePart, ...decimalParts] = cleaned.split(".");
-  const whole = wholePart.slice(0, 6);
+function moneyDigitsToInput(value: string): string {
+  const digits = value.replace(/\D/g, "").replace(/^0+(?=\d{3})/, "").slice(0, 8);
+  const cents = Number(digits || "0");
 
-  if (decimalParts.length === 0) {
-    return whole;
-  }
-
-  return `${whole}.${decimalParts.join("").slice(0, 2)}`;
+  return formatMoneyInput(cents);
 }
 
 function formatMoneyInput(cents: number): string {

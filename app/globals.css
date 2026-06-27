@@ -418,14 +418,16 @@ input:focus {
 }
 
 .item-input-grid {
+  align-items: center;
+  column-gap: 6px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 82px;
+  grid-template-columns: minmax(0, 1fr) 92px;
 }
 
 .item-name-input,
 .item-price-input input {
-  font-size: 18px;
-  height: 20px;
+  font-size: 17px;
+  height: 18px;
   line-height: 1;
 }
 
@@ -434,10 +436,11 @@ input:focus {
 }
 
 .item-price-input {
-  align-items: baseline;
+  align-items: center;
   display: flex;
   gap: 3px;
   justify-content: flex-end;
+  min-width: 0;
 }
 
 .item-price-input span {
@@ -446,7 +449,7 @@ input:focus {
 
 .item-price-input input {
   text-align: right;
-  width: 48px;
+  width: 58px;
 }
 
 .item-chips .chip {
