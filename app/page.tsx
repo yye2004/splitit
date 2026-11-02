@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ChangeEvent,
   type ReactNode,
@@ -76,6 +77,10 @@ export default function Home() {
   const [roundTotals, setRoundTotals] = useState(false);
   const [split, setSplit] = useState<SplitResult | null>(null);
   const [splitStatus, setSplitStatus] = useState<SplitStatus>("loading");
+  const [pendingRemoval, setPendingRemoval] = useState<
+    { kind: "person"; index: number; name: string } |
+    { kind: "item"; id: string; name: string } | null
+  >(null);
 
   const activePeople = useMemo(() => normalizePeople(people), [people]);
   const splitItems = useMemo(
@@ -151,6 +156,11 @@ export default function Home() {
     (index: number, value: string) => {
       const previousName = people[index];
 
+      if (!value.trim() || value.trim().toLowerCase() === "null") {
+        setPendingRemoval({ kind: "person", index, name: previousName });
+        return;
+      }
+
       markSplitDirty();
       setPeople((current) =>
         current.map((person, personIndex) => (personIndex === index ? value : person)),
@@ -180,8 +190,33 @@ export default function Home() {
 
   const addPerson = useCallback(() => {
     markSplitDirty();
-    setPeople((current) => [...current, `p${current.length + 1}`]);
+    setPeople((current) => {
+      let number = 1;
+      while (current.includes(`p${number}`)) number += 1;
+      return [...current, `p${number}`];
+    });
   }, [markSplitDirty]);
+
+  const confirmRemoval = () => {
+    if (!pendingRemoval) return;
+    markSplitDirty();
+    if (pendingRemoval.kind === "person") {
+      const remaining = people.filter((_, index) => index !== pendingRemoval.index);
+      setPeople(remaining);
+      setItems((current) => current.map((item) => ({
+        ...item,
+        assignees: item.assignees.filter((name) => name !== pendingRemoval.name),
+      })));
+      setPaidPeople((current) => current.filter((name) => name !== pendingRemoval.name));
+      if (paidBy === pendingRemoval.name) setPaidBy(remaining[0] ?? "");
+      if (selectedPerson === pendingRemoval.name) setSelectedPerson(remaining[0] ?? "");
+    } else {
+      const remaining = items.filter((item) => item.id !== pendingRemoval.id);
+      setItems(remaining);
+      if (selectedItemId === pendingRemoval.id) setSelectedItemId(remaining[0]?.id ?? "");
+    }
+    setPendingRemoval(null);
+  };
 
   const addItem = useCallback(() => {
     markSplitDirty();
@@ -324,6 +359,10 @@ export default function Home() {
         items={items}
         normalizeItemPrice={normalizeItemPrice}
         openAssignSheet={openAssignSheet}
+        requestRemoval={(id) => {
+          const index = items.findIndex((item) => item.id === id);
+          setPendingRemoval({ kind: "item", id, name: items[index].name || `item ${index + 1}` });
+        }}
         split={split}
         subtotalCents={subtotalCents}
         updateItemName={updateItemName}
@@ -331,7 +370,7 @@ export default function Home() {
       />
     ),
     assign: (
-      <AssignScreen
+      selectedItem ? <AssignScreen
         activePeople={activePeople}
         go={go}
         items={items}
@@ -339,7 +378,7 @@ export default function Home() {
         split={split}
         subtotalCents={subtotalCents}
         toggleItemAssignee={toggleItemAssignee}
-      />
+      /> : null
     ),
     charges: (
       <ChargesScreen
@@ -384,7 +423,35 @@ export default function Home() {
       <section className="app-stage" aria-label="splitlah sketch prototype">
         <Clipboard>{currentScreen[screen]}</Clipboard>
       </section>
+      {pendingRemoval && (
+        <RemovalDialog
+          name={pendingRemoval.name}
+          onCancel={() => setPendingRemoval(null)}
+          onConfirm={confirmRemoval}
+        />
+      )}
     </main>
+  );
+}
+
+function RemovalDialog({ name, onCancel, onConfirm }: {
+  name: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => { dialog.current?.showModal(); }, []);
+
+  return (
+    <dialog ref={dialog} className="removal-dialog" aria-labelledby="removal-title"
+      aria-describedby="removal-description" onCancel={onCancel}>
+      <h2 id="removal-title">remove {name}?</h2>
+      <p id="removal-description">are you sure you want to remove {name}?</p>
+      <div className="removal-actions">
+        <SketchButton variant="outline" onClick={onCancel}>cancel</SketchButton>
+        <SketchButton onClick={onConfirm}>remove</SketchButton>
+      </div>
+    </dialog>
   );
 }
 
@@ -730,7 +797,7 @@ function SetupScreen({
         <div className="people-list" aria-label="people on this bill">
           {people.map((person, index) => (
             <PersonNameChip
-              key={`p-${index}`}
+              key={`p-${index}-${person}`}
               label={`p ${index + 1}`}
               onChange={(value) => updatePerson(index, value)}
               value={person}
@@ -768,6 +835,7 @@ function ItemsScreen({
   items,
   normalizeItemPrice,
   openAssignSheet,
+  requestRemoval,
   split,
   subtotalCents,
   updateItemName,
@@ -778,6 +846,7 @@ function ItemsScreen({
   items: BillItem[];
   normalizeItemPrice: (id: string) => void;
   openAssignSheet: (id: string) => void;
+  requestRemoval: (id: string) => void;
   split: SplitResult | null;
   subtotalCents: number;
   updateItemName: (id: string, name: string) => void;
@@ -793,7 +862,9 @@ function ItemsScreen({
           <span>{formatCurrency(split?.subtotalCents ?? subtotalCents)}</span>
         </div>
       </div>
+      <p className="swipe-hint">swipe a row left to remove</p>
       <div className="item-list item-list-scroll">
+        {items.length === 0 && <p className="empty-note">no items yet — add an item below</p>}
         {items.map((item, index) => (
           <EditableItemRow
             item={item}
@@ -801,6 +872,7 @@ function ItemsScreen({
             label={`item ${index + 1}`}
             normalizeItemPrice={normalizeItemPrice}
             onAssign={() => openAssignSheet(item.id)}
+            onRemove={() => requestRemoval(item.id)}
             updateItemName={updateItemName}
             updateItemPrice={updateItemPrice}
           />
@@ -1273,15 +1345,23 @@ function PersonNameChip({
   onChange: (value: string) => void;
   value: string;
 }) {
+  const [draft, setDraft] = useState(value);
   return (
     <label className="person-chip">
       <Shape id="chip" />
       <input
         aria-label={label}
         className="chip-input"
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={() => {
+          onChange(draft);
+          setDraft(value);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") event.currentTarget.blur();
+        }}
         type="text"
-        value={value}
+        value={draft}
       />
     </label>
   );
@@ -1316,6 +1396,7 @@ function EditableItemRow({
   label,
   normalizeItemPrice,
   onAssign,
+  onRemove,
   updateItemName,
   updateItemPrice,
 }: {
@@ -1323,11 +1404,42 @@ function EditableItemRow({
   label: string;
   normalizeItemPrice: (id: string) => void;
   onAssign: () => void;
+  onRemove: () => void;
   updateItemName: (id: string, name: string) => void;
   updateItemPrice: (id: string, price: string) => void;
 }) {
+  const start = useRef<{ x: number; y: number } | null>(null);
+  const [swipe, setSwipe] = useState(0);
   return (
-    <div className="item-row item-editor">
+    <div className="swipe-item">
+      <button type="button" className="remove-item" aria-label={`remove ${item.name || label}`} onClick={onRemove}>remove</button>
+    <div className="item-row item-editor" style={{ transform: swipe ? `translateX(${swipe}px)` : undefined }}
+      onPointerDown={(event) => { start.current = { x: event.clientX, y: event.clientY }; }}
+      onPointerMove={(event) => {
+        if (!start.current) return;
+        const dx = event.clientX - start.current.x;
+        const dy = event.clientY - start.current.y;
+        if (Math.abs(dy) > 20 && Math.abs(dy) > Math.abs(dx)) {
+          start.current = null;
+          setSwipe(0);
+        } else if (dx < -10 && Math.abs(dx) > Math.abs(dy)) {
+          event.currentTarget.setPointerCapture(event.pointerId);
+          setSwipe(Math.max(-90, dx));
+        }
+      }}
+      onPointerUp={(event) => {
+        const origin = start.current;
+        start.current = null;
+        setSwipe(0);
+        if (origin && event.clientX - origin.x < -60 && Math.abs(event.clientY - origin.y) < 40) {
+          event.preventDefault();
+          onRemove();
+        }
+      }}
+      onPointerCancel={() => { start.current = null; setSwipe(0); }}
+      onClickCapture={(event) => {
+        if (swipe < -10) { event.preventDefault(); event.stopPropagation(); }
+      }}>
       <Shape id="item-card" />
       <span className="item-main item-input-grid">
         <input
@@ -1359,6 +1471,7 @@ function EditableItemRow({
           <Chip key={person}>{person}</Chip>
         ))}
       </span>
+    </div>
     </div>
   );
 }
